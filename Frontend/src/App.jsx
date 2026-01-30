@@ -7,7 +7,7 @@ import JoblistPage from './JoblistPage'
 function App() {
   return (
     <>
-    <JoblistPage />
+    <RegisterPage />
     </>
   )
 }
