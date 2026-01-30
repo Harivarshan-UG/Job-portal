@@ -108,7 +108,7 @@ export default function LoginPage() {
 
                         <button disabled={isPending} type="submit" className="w-full bg-blue-700 hover:bg-blue-800
                                     text-white font-semibold py-2.5 rounded transition">
-                            Login
+                            {isPending ? 'Logging in...' : 'Login Now'}
                         </button>
 
                         <p className="text-center text-sm text-gray-600">
