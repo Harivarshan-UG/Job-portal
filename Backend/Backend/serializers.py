@@ -12,3 +12,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = '__all__'
+
+class JobsSerializer(serializers.ModelSerializer):
+    created_by = serializers.StringRelatedField()
+    class Meta:
+        model = Job
+        fields = '__all__'
