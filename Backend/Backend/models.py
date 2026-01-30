@@ -1,0 +1,30 @@
+from django.db import models
+from django.contrib.auth.models import User
+
+class Job(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    salary_range = models.DecimalField(max_digits=10, decimal_places=2)
+    company = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+    posted_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, verbose_name=("created by"), on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title   
+
+class Application(models.Model):
+    status_choices = (
+        ('pending', 'Pending'),
+        ('shortlisted', 'Shortlisted'),
+        ('rejected', 'Rejected'),
+        ('accepted', 'Accepted')
+    ) 
+    applicant = models.ForeignKey(User, verbose_name=("applicant"), on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, default='pending', choices=status_choices)
+    applied_at = models.DateTimeField(auto_now_add=True)
+    job = models.ForeignKey(Job, related_name='applicants', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+    
