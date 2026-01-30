@@ -1,8 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, JobsSerializer, ApplicationSerializer
 from rest_framework import status
 from django.contrib.auth.models import User
+from .models import Job
+
 
 
 @api_view(['GET'])
@@ -27,3 +29,9 @@ def login_user(request):
         return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def job_list(request):
+    jobs = Job.objects.all()
+    jobs_serializer = JobsSerializer(jobs, many=True)
+    return Response({'data': jobs_serializer.data}, status=status.HTTP_200_OK)
