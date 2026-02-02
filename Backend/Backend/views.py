@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from .serializers import RegisterSerializer, JobsSerializer, ApplicationSerializer
 from rest_framework import status
 from django.contrib.auth.models import User
-from .models import Job
+from .models import Application, Job
 
 
 
@@ -35,3 +35,18 @@ def job_list(request):
     jobs = Job.objects.all()
     jobs_serializer = JobsSerializer(jobs, many=True)
     return Response({'data': jobs_serializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def apply_job(request):
+    application_serializer = ApplicationSerializer(data=request.data)
+    applicant_id = request.data.get('applicant')
+    job_id = request.data.get('job')
+    applicant = User.objects.get(id=applicant_id)
+    job = Job.objects.get(id=job_id)
+    if Application.objects.filter(applicant=applicant, job=job).exists():
+        return Response({'message': 'You have already applied for this job'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if application_serializer.is_valid():
+        application_serializer.save()
+        return Response({'data': application_serializer.data, 'message': 'Application submitted successfully'}, status=status.HTTP_201_CREATED)
+    return Response({'errors': application_serializer.errors, 'message': 'Application submission failed'}, status=status.HTTP_400_BAD_REQUEST)

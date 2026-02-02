@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 class Job(models.Model):
     title = models.CharField(max_length=200)
+    About = models.TextField(null=True, blank=True)
     description = models.TextField()
     salary_range = models.CharField(max_length=20)
     company = models.CharField(max_length=100)

@@ -63,7 +63,7 @@ export default function JoblistPage() {
                             <div key={job.id} className="rounded-lg border bg-white p-6 lg:p-7 transition hover:shadow-lg hover:border-blue-300">
                                 <h3 className="text-lg lg:text-xl font-semibold text-blue-700">{job.title}</h3>
                                 <p className="mt-2 text-sm lg:text-base text-gray-700 font-medium">{job.company}</p>
-                                <p className="mt-3 text-sm lg:text-base text-gray-600 line-clamp-2">{job.description}</p>
+                                <p className="mt-3 text-sm lg:text-base text-gray-600 line-clamp-2">{job.About}</p>
                                 <p className="mt-3 text-xs lg:text-sm"><span className="text-blue-700 font-medium">Posted on:</span> <span className="text-gray-600">{new Date(job.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></p>
                                 <div className="mt-4 flex flex-wrap gap-3 text-xs lg:text-sm text-gray-600">
                                 <span className="rounded bg-gray-100 px-3 py-1.5 lg:px-4 lg:py-2">📍 {job.location}</span>
