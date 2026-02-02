@@ -70,7 +70,7 @@ export default function RegisterPage() {
                 <section className="flex items-center justify-center w-full">
                     <div className="w-full bg-white border rounded-lg p-8 lg:p-10 max-w-124 shadow-sm">
                         <h2 className="text-2xl lg:text-3xl font-bold text-blue-700 text-center">
-                            Create your JobPortal profile
+                            Create your profile
                         </h2>
 
                         <p className="text-sm lg:text-base text-gray-500 text-center mt-2">
