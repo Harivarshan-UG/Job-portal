@@ -1,61 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { NavLink, useParams } from 'react-router-dom';
 
 export default function ApplyPage() {
+    const { jobId } = useParams();
     const [isApplied, setIsApplied] = useState(false);
     const [job, setjob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [username, setUsername] = useState('User');
 
     useEffect(() => {
-        // Fetch real data from the backend
-        fetch('http://127.0.0.1:8000/jobs/')
+        // Get user_id from localStorage
+        const userId = localStorage.getItem('user_id') || 2; // Fallback to 2 if not found
+
+        // Get username from localStorage
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+            setUsername(storedUsername);
+        }
+
+        // Fetch the specific job by ID from the backend
+        const fetchJob = fetch(`http://127.0.0.1:8000/jobs/${jobId}/`)
             .then(response => {
-                if (!response.ok) throw new Error('Failed to fetch jobs');
+                if (!response.ok) throw new Error('Failed to fetch job details');
                 return response.json();
             })
-            .then(data => {
-                // Handle different response structures
-                let jobs = [];
-                if (Array.isArray(data)) {
-                    jobs = data;
-                } else if (Array.isArray(data.results)) {
-                    jobs = data.results;
-                } else if (Array.isArray(data.data)) {
-                    jobs = data.data;
-                }
+            .then(job => {
+                setjob({
+                    id: job.id,
+                    title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    postedDate: new Date(job.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    salary: job.salary_range,
+                    description: job.description,
+                    About: job.About,
+                    fullDescription: job.description,
+                    benefits: ['Health Insurance', 'Remote Work', '401k Match', 'Professional Development', 'Flexible Hours'],
+                    tags: ['Figma', 'HTML', 'JavaScript', 'Web Development', 'Full-time']
+                });
+            });
 
-                if (jobs.length > 0) {
-                    // Taking the first job for this view
-                    const job = jobs[0];
-                    setjob({
-                        id: job.id,
-                        title: job.title,
-                        company: job.company,
-                        location: job.location,
-                        postedDate: new Date(job.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                        salary: job.salary_range,
-                        description: job.description,
-                        About: job.About,
-                        fullDescription: job.description, 
-                        benefits: ['Health Insurance', 'Remote Work', '401k Match', 'Professional Development', 'Flexible Hours'],
-                        tags: ['Figma','HTML','JavaScript', 'Web Development', 'Full-time']
-                    });
-                } else {
-                    setError('No jobs available');
-                }
-                setLoading(false);
+        // Check if user has already applied to this job
+        const checkApplication = fetch(`http://127.0.0.1:8000/applications/${userId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to fetch applications');
+                return response.json();
+            })
+            .then(applications => {
+                // Check if any application matches this job ID
+                const hasApplied = applications.some(app => app.job.id === parseInt(jobId));
+                setIsApplied(hasApplied);
             })
             .catch(err => {
-                console.error('Error fetching jobs:', err);
+                console.error('Error checking application status:', err);
+                // Don't set error here, just log it
+            });
+
+        // Wait for both requests to complete
+        Promise.all([fetchJob, checkApplication])
+            .then(() => setLoading(false))
+            .catch(err => {
+                console.error('Error loading page:', err);
                 setError('Failed to load job details. Is the backend running on port 8000?');
                 setLoading(false);
             });
-    }, []);
+    }, [jobId]);
 
     const handleApply = async () => {
         if (!job) return;
 
         try {
+            const userId = localStorage.getItem('user_id') || 2; // Get from localStorage
             console.log('Applying for job:', job.id);
             const response = await fetch('http://127.0.0.1:8000/apply/', {
                 method: 'POST',
@@ -64,7 +80,7 @@ export default function ApplyPage() {
                 },
                 body: JSON.stringify({
                     job: job.id,
-                    applicant: 1 // Replace with actual applicant ID
+                    applicant: parseInt(userId) // Use actual user ID
                 }),
             });
 
@@ -90,7 +106,7 @@ export default function ApplyPage() {
             </div>
         </div>
     );
-    
+
     if (error) return <div className="min-h-screen flex items-center justify-center text-red-600 font-bold px-4 text-center">{error}</div>;
     if (!job) return null;
 
@@ -98,45 +114,56 @@ export default function ApplyPage() {
         <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50 flex flex-col font-sans">
             {/* Header */}
             <header className="border-b bg-white">
-            <div className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 lg:px-8">
-                <h1 className="text-2xl lg:text-3xl font-bold text-blue-700">JobPortal</h1>
+                <div className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 lg:px-8">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-blue-700">JobPortal</h1>
 
-                <nav className="hidden md:flex gap-6 lg:gap-10 text-sm lg:text-base font-medium text-gray-700">
-                <a href="#" className="hover:text-blue-700 transition">Jobs</a>
-                <a href="#" className="hover:text-blue-700 transition">Companies</a>
-                <a href="#" className="hover:text-blue-700 transition">Applications</a>
-                </nav>
+                    <nav className="hidden md:flex gap-6 lg:gap-10 text-sm lg:text-base font-medium text-gray-700">
+                        <NavLink to="/joblist" className="hover:text-blue-700 transition">Jobs</NavLink>
+                        <NavLink to="/companies" className="hover:text-blue-700 transition">Companies</NavLink>
+                        <NavLink to="/applications" className="hover:text-blue-700 transition">Applications</NavLink>
+                    </nav>
 
-                <div className="flex items-center gap-4 lg:gap-6">
-                <span className="text-sm lg:text-base text-gray-600">Hello, Harivarshan</span>
-                <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-semibold text-white">
-                    H
+                    <div className="flex items-center gap-4 lg:gap-6">
+                        <span className="text-sm lg:text-base text-gray-600">Hello, {username}</span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-semibold text-white">
+                                {username.charAt(0).toUpperCase()}
+                            </div>
+                            <NavLink
+                                to="/"
+                                onClick={() => {
+                                    localStorage.removeItem('username');
+                                    localStorage.removeItem('user_id');
+                                }}
+                                className="px-4 py-2 text-sm lg:text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
+                            >
+                                Logout
+                            </NavLink>
+                        </div>
+                    </div>
                 </div>
-                </div>
-            </div>
             </header>
 
             {/* Main Content */}
             <main className="grow px-4 py-8 lg:px-8 lg:py-12">
                 <div className="mx-auto max-w-5xl">
                     {/* Back Button */}
-                    <button
-                        onClick={() => console.log("Navigate back")}
-                        className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-blue-600 hover:text-blue-700 transition cursor-pointer group"
-                    >
+                    <NavLink
+                        to="/joblist"
+                        className="inline-flex items-center gap-2 mb-8 text-sm font-medium text-blue-600 hover:text-blue-700 transition cursor-pointer group">
                         <svg className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                         Back to Jobs
-                    </button>
+                    </NavLink>
 
                     <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                         {/* Job Card Header Section */}
                         <div className="bg-linear-to-r from-blue-600 to-indigo-600 p-6 md:p-10 text-white relative overflow-hidden">
-                             {/* Decorative circles for depth */}
+                            {/* Decorative circles for depth */}
                             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-5 pointer-events-none"></div>
                             <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-white opacity-5 pointer-events-none"></div>
-                            
+
                             <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 relative z-10 gap-4">
                                 <div>
                                     <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight">{job.title}</h1>
@@ -262,7 +289,7 @@ export default function ApplyPage() {
             {/* Footer */}
             <footer className="border-t bg-white mt-auto">
                 <div className="mx-auto max-w-8xl px-4 py-6 lg:px-8 lg:py-8 text-center text-sm lg:text-base text-gray-500">
-                © 2026 JobPortal.com | All rights reserved
+                    © 2026 JobPortal.com | All rights reserved
                 </div>
             </footer>
         </div>

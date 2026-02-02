@@ -1,31 +1,43 @@
 
 import { useActionState } from 'react'
-
-async function registerAction(_, formdata) {
-    const json = Object.fromEntries(formdata)
-
-    try {
-        const res = await fetch('http://127.0.0.1:8000/register/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(json),
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) {
-            return data.message || 'Registration failed. Please try again.'
-        }
-
-        return data.message || 'Registration successful'
-    } catch {
-        return 'Network error. Please check your connection.'
-    }
-}
+import { NavLink, useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
+    const navigate = useNavigate();
+
+    async function registerAction(_, formdata) {
+        const json = Object.fromEntries(formdata)
+
+        try {
+            const res = await fetch('http://127.0.0.1:8000/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(json),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                return data.message || 'Registration failed. Please try again.'
+            }
+
+            // Store username and user_id in localStorage
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('user_id', data.user_id);
+
+            // Redirect to job list on successful registration
+            setTimeout(() => {
+                navigate('/joblist');
+            }, 1000);
+
+            return data.message || 'Registration successful'
+        } catch {
+            return 'Network error. Please check your connection.'
+        }
+    }
+
     const [message, formAction, isPending] = useActionState(registerAction, '')
 
     return (
@@ -38,10 +50,10 @@ export default function RegisterPage() {
                     </div>
 
                     <nav className="hidden md:flex gap-6 lg:gap-10 text-sm lg:text-base font-medium text-gray-700">
-                        <a href="#" className="hover:text-blue-700 transition">Jobs</a>
-                        <a href="#" className="hover:text-blue-700 transition">Companies</a>
-                        <a href="#" className="hover:text-blue-700 transition">Services</a>
-                        <a href="#" className="hover:text-blue-700 transition">Login</a>
+                        <NavLink to="/joblist" className="hover:text-blue-700 transition">Jobs</NavLink>
+                        <NavLink to="/companies" className="hover:text-blue-700 transition">Companies</NavLink>
+                        <NavLink to="/services" className="hover:text-blue-700 transition">Services</NavLink>
+                        <NavLink to="/login" className="hover:text-blue-700 transition">Login</NavLink>
                     </nav>
                 </div>
             </header>
@@ -153,9 +165,9 @@ export default function RegisterPage() {
 
                             <p className="text-sm lg:text-base text-center text-gray-600">
                                 Already registered?
-                                <a href="#" className="text-blue-700 font-medium hover:text-blue-900 hover:underline transition">
+                                <NavLink to="/login/" className="text-blue-700 font-medium hover:text-blue-900 hover:underline transition">
                                     {' '}Login here
-                                </a>
+                                </NavLink>
                             </p>
                         </form>
                     </div>

@@ -1,36 +1,51 @@
 import React from 'react'
 import { useActionState } from 'react'
-
-async function LoginAction(_, formdata) {
-    const json = Object.fromEntries(formdata)
-
-    try {
-        const res = await fetch('http://127.0.0.1:8000/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(json),
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) {
-            return data.message || 'Login failed. Please try again.'
-        }
-
-        return data.message || 'Login successful'
-    } catch {
-        return 'Network error. Please check your connection.'
-    }
-}
+import { NavLink, useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
+    const navigate = useNavigate();
+
+    async function LoginAction(_, formdata) {
+        const json = Object.fromEntries(formdata)
+
+        try {
+            const res = await fetch('http://127.0.0.1:8000/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(json),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                return data.message || 'Login failed. Please try again.'
+            }
+
+            // Store username and user_id in localStorage
+            if (data.username) {
+                localStorage.setItem('username', data.username);
+            }
+            if (data.user_id) {
+                localStorage.setItem('user_id', data.user_id);
+            }
+            // Redirect to job list on successful login
+            setTimeout(() => {
+                navigate('/joblist');
+            }, 1000);
+
+            return data.message || 'Login successful'
+        } catch {
+            return 'Network error. Please check your connection.'
+        }
+    }
+
     const [message, formAction, isPending] = useActionState(LoginAction, '')
     return (
-    <div>
-                    <div className="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
-                
+        <div>
+            <div className="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
                 <header className="bg-white border-b">
                     <div className="max-w-8xl mx-auto px-4 py-4 lg:px-8 lg:py-6 flex items-center justify-between">
                         <div className="text-2xl lg:text-3xl 2xl:text-4xl font-bold text-blue-700">
@@ -38,16 +53,16 @@ export default function LoginPage() {
                         </div>
 
                         <nav className="hidden md:flex gap-6 lg:gap-10 text-sm lg:text-base font-medium text-gray-700">
-                            <a href="#" className="hover:text-blue-700 transition">Jobs</a>
-                            <a href="#" className="hover:text-blue-700 transition">Companies</a>
-                            <a href="#" className="hover:text-blue-700 transition">Services</a>
-                            <a href="#" className="hover:text-blue-700 transition">Register</a>
+                            <NavLink to="/joblist" className="hover:text-blue-700 transition">Jobs</NavLink>
+                            <NavLink to="/companies" className="hover:text-blue-700 transition">Companies</NavLink>
+                            <NavLink to="/services" className="hover:text-blue-700 transition">Services</NavLink>
+                            <NavLink to="/register" className="hover:text-blue-700 transition">Register</NavLink>
                         </nav>
                     </div>
                 </header>
 
                 <main className="max-w-8xl mx-auto w-full px-4 py-12 lg:px-8 lg:py-16 grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 flex-1 items-center">
-                
+
                     <section className="hidden md:flex flex-col justify-center items-start md:pl-[30%]">
                         <h1 className="text-3xl lg:text-4xl 2xl:text-5xl font-bold leading-snug">
                             Find your dream job now
@@ -66,7 +81,7 @@ export default function LoginPage() {
                     </section>
 
                     <section className="flex items-center justify-center w-full">
-                        <div className="w-full bg-white border rounded-lg p-8 lg:p-10 max-w-md shadow-sm">
+                        <div className="w-full bg-white border rounded-lg p-8 lg:p-10 max-w-124 shadow-sm">
                             <h1 className="text-2xl lg:text-3xl font-bold text-blue-700 text-center">
                                 JobPortal
                             </h1>
@@ -111,9 +126,9 @@ export default function LoginPage() {
 
                                 <p className="text-sm lg:text-base text-center text-gray-600 border-t pt-6">
                                     New to JobPortal?
-                                    <a href="#" className="text-blue-700 font-medium hover:text-blue-900 hover:underline transition">
+                                    <NavLink to="/register" className="text-blue-700 font-medium hover:text-blue-900 hover:underline transition">
                                         {' '}Register here
-                                    </a>
+                                    </NavLink>
                                 </p>
                             </form>
                         </div>
@@ -127,6 +142,6 @@ export default function LoginPage() {
                     </div>
                 </footer>
             </div>
-    </div>
+        </div>
     )
 }

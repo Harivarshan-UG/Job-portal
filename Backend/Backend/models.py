@@ -27,5 +27,5 @@ class Application(models.Model):
     job = models.ForeignKey(Job, related_name='applicants', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.applicant.username} - {self.job.title}"
     
