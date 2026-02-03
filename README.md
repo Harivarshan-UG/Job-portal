@@ -442,13 +442,16 @@ fetch('http://127.0.0.1:8000/apply/', {
 <!-- Add screenshots of your application here -->
 
 ### Landing Page
-![Landing Page](screenshots/landing.png)
+![Landing Page](screenshots/Landing-Page.png)
 
 ### Job Listings
-![Job Listings](screenshots/jobs.png)
+![Job Listings](screenshots/Jobslist.png)
+
+### Job Detail Listings
+![Job Detail Listings](screenshots/Job-Detail.png)
 
 ### Application Tracking
-![Applications](screenshots/applications.png)
+![Applications](screenshots/Applied_Jobs.png)
 
 ## 🤝 Contributing
 
