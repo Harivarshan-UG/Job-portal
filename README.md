@@ -444,6 +444,12 @@ fetch('http://127.0.0.1:8000/apply/', {
 ### Landing Page
 ![Landing Page](screenshots/Landing-Page.png)
 
+### Login Page
+![Landing Page](screenshots/Login-Screen.png)
+
+### Register Page
+![Landing Page](screenshots/Register-Screen.png)
+
 ### Job Listings
 ![Job Listings](screenshots/Jobslist.png)
 
