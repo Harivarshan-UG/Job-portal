@@ -127,10 +127,9 @@ WSGI_APPLICATION = 'Backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': config(
-        'DATABASE_URL',
-        default=f"postgres://{config('DB_USER', 'postgres')}:{config('DB_PASSWORD', '')}@{config('DB_HOST', 'localhost')}:{config('DB_PORT', '5432')}/{config('DB_NAME', 'jobportal_db')}",
-        cast=dj_database_url.parse
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL', default=f"postgres://{config('DB_USER', 'postgres')}:{config('DB_PASSWORD', '')}@{config('DB_HOST', 'localhost')}:{config('DB_PORT', '5432')}/{config('DB_NAME', 'jobportal_db')}"),
+        conn_max_age=600
     )
 }
 
