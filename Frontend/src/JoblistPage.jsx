@@ -1,20 +1,17 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export default function JoblistPage() {
-
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
     const [jobs, setJobs] = useState([]);
-    const [username, setUsername] = useState('User');
 
     useEffect(() => {
-        // Get username from localStorage
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
-
-        fetch('http://localhost:8000/jobs/')
+        fetch('http://localhost:8000/jobs/', {
+            credentials: 'include' // Important: send cookies with request
+        })
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
@@ -48,21 +45,20 @@ export default function JoblistPage() {
                     </nav>
 
                     <div className="flex items-center gap-4 lg:gap-6">
-                        <span className="text-sm lg:text-base text-gray-600">Hello, {username}</span>
+                        <span className="text-sm lg:text-base text-gray-600">Hello, {user?.username || 'User'}</span>
                         <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-semibold text-white">
-                                {username.charAt(0).toUpperCase()}
+                                {(user?.username || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <NavLink
-                                to="/"
-                                onClick={() => {
-                                    localStorage.removeItem('username');
-                                    localStorage.removeItem('user_id');
+                            <button
+                                onClick={async () => {
+                                    await logout();
+                                    navigate('/');
                                 }}
                                 className="px-4 py-2 text-sm lg:text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
                             >
                                 Logout
-                            </NavLink>
+                            </button>
                         </div>
                     </div>
                 </div>

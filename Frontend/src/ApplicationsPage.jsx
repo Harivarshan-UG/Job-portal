@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export default function ApplicationsPage() {
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [username, setUsername] = useState('User');
 
     useEffect(() => {
-        // Get user_id from localStorage
-        const userId = localStorage.getItem('user_id') || 2; // Fallback to 2 if not found
+        if (!user) return;
 
-        // Get username from localStorage
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
 
-        fetch(`http://127.0.0.1:8000/applications/${userId}/`)
+        fetch(`http://127.0.0.1:8000/applications/${user.user_id}/`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch applications');
                 return response.json();
@@ -31,7 +33,7 @@ export default function ApplicationsPage() {
                 setError('Failed to load applications. Please try again later.');
                 setLoading(false);
             });
-    }, []);
+    }, [user]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -77,21 +79,20 @@ export default function ApplicationsPage() {
                     </nav>
 
                     <div className="flex items-center gap-4 lg:gap-6">
-                        <span className="text-sm lg:text-base text-gray-600">Hello, {username}</span>
+                        <span className="text-sm lg:text-base text-gray-600">Hello, {user?.username || 'User'}</span>
                         <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-semibold text-white">
-                                {username.charAt(0).toUpperCase()}
+                                {(user?.username || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <NavLink
-                                to="/"
-                                onClick={() => {
-                                    localStorage.removeItem('username');
-                                    localStorage.removeItem('user_id');
+                            <button
+                                onClick={async () => {
+                                    await logout();
+                                    navigate('/');
                                 }}
                                 className="px-4 py-2 text-sm lg:text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
                             >
                                 Logout
-                            </NavLink>
+                            </button>
                         </div>
                     </div>
                 </div>

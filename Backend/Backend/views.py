@@ -1,17 +1,18 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, JobsSerializer, ApplicationSerializer
 from rest_framework import status
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .models import Application, Job
-
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @api_view(['GET'])
 def hello_api(request):
     return Response({'message': 'Hello, World!'})
-
 
 @api_view(['POST'])
 def register_user(request):
@@ -26,6 +27,7 @@ def register_user(request):
         }, status=status.HTTP_201_CREATED)
     return Response({'errors': register_serializer.errors, 'message': 'Registration failed'}, status=status.HTTP_400_BAD_REQUEST)
 
+@csrf_exempt
 @api_view(['POST'])
 def login_user(request):
     username = request.data.get('username')
@@ -35,13 +37,35 @@ def login_user(request):
     user = authenticate(username=username, password=password)
     
     if user is not None:
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        
         return Response({
             'message': 'Login successful',
             'user_id': user.id,
-            'username': user.username
+            'username': user.username,
+            'email': user.email,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
         }, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+def logout_user(request):
+    return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    user = request.user
+    return Response({
+        'user_id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name
+    }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def job_list(request):
@@ -59,6 +83,7 @@ def job_detail(request, job_id):
         return Response({'message': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def apply_job(request):
     try:
         application_serializer = ApplicationSerializer(data=request.data)
@@ -89,6 +114,7 @@ def apply_job(request):
         return Response({'message': f'Error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_applications(request, user_id):
     try:
         applications = Application.objects.filter(applicant_id=user_id).select_related('job')

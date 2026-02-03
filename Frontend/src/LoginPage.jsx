@@ -1,43 +1,26 @@
 import React from 'react'
 import { useActionState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     async function LoginAction(_, formdata) {
-        const json = Object.fromEntries(formdata)
+        const username = formdata.get('username');
+        const password = formdata.get('password');
 
-        try {
-            const res = await fetch('http://127.0.0.1:8000/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(json),
-            })
+        const result = await login(username, password);
 
-            const data = await res.json()
-
-            if (!res.ok) {
-                return data.message || 'Login failed. Please try again.'
-            }
-
-            // Store username and user_id in localStorage
-            if (data.username) {
-                localStorage.setItem('username', data.username);
-            }
-            if (data.user_id) {
-                localStorage.setItem('user_id', data.user_id);
-            }
+        if (result.success) {
             // Redirect to job list on successful login
             setTimeout(() => {
                 navigate('/joblist');
             }, 1000);
-
-            return data.message || 'Login successful'
-        } catch {
-            return 'Network error. Please check your connection.'
+            return result.message || 'Login successful';
+        } else {
+            return result.message || 'Login failed. Please try again.';
         }
     }
 

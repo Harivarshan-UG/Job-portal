@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export default function ApplyPage() {
     const { jobId } = useParams();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
     const [isApplied, setIsApplied] = useState(false);
     const [job, setjob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [username, setUsername] = useState('User');
 
     useEffect(() => {
-        // Get user_id from localStorage
-        const userId = localStorage.getItem('user_id') || 2; // Fallback to 2 if not found
+        if (!user) return;
 
-        // Get username from localStorage
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
 
         // Fetch the specific job by ID from the backend
-        const fetchJob = fetch(`http://127.0.0.1:8000/jobs/${jobId}/`)
+        const fetchJob = fetch(`http://127.0.0.1:8000/jobs/${jobId}/`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch job details');
                 return response.json();
@@ -42,7 +44,11 @@ export default function ApplyPage() {
             });
 
         // Check if user has already applied to this job
-        const checkApplication = fetch(`http://127.0.0.1:8000/applications/${userId}/`)
+        const checkApplication = fetch(`http://127.0.0.1:8000/applications/${user.user_id}/`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch applications');
                 return response.json();
@@ -65,22 +71,28 @@ export default function ApplyPage() {
                 setError('Failed to load job details. Is the backend running on port 8000?');
                 setLoading(false);
             });
-    }, [jobId]);
+    }, [jobId, user]);
 
     const handleApply = async () => {
-        if (!job) return;
+        if (!job || !user) return;
+
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please login again');
+            return;
+        }
 
         try {
-            const userId = localStorage.getItem('user_id') || 2; // Get from localStorage
             console.log('Applying for job:', job.id);
             const response = await fetch('http://127.0.0.1:8000/apply/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     job: job.id,
-                    applicant: parseInt(userId) // Use actual user ID
+                    applicant: user.user_id
                 }),
             });
 
@@ -124,21 +136,20 @@ export default function ApplyPage() {
                     </nav>
 
                     <div className="flex items-center gap-4 lg:gap-6">
-                        <span className="text-sm lg:text-base text-gray-600">Hello, {username}</span>
+                        <span className="text-sm lg:text-base text-gray-600">Hello, {user?.username || 'User'}</span>
                         <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-blue-700 text-sm font-semibold text-white">
-                                {username.charAt(0).toUpperCase()}
+                                {(user?.username || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <NavLink
-                                to="/"
-                                onClick={() => {
-                                    localStorage.removeItem('username');
-                                    localStorage.removeItem('user_id');
+                            <button
+                                onClick={async () => {
+                                    await logout();
+                                    navigate('/');
                                 }}
                                 className="px-4 py-2 text-sm lg:text-base font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-md hover:shadow-lg"
                             >
                                 Logout
-                            </NavLink>
+                            </button>
                         </div>
                     </div>
                 </div>

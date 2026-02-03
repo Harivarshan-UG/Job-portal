@@ -1,40 +1,39 @@
 
 import { useActionState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
+    const { register } = useAuth();
 
     async function registerAction(_, formdata) {
-        const json = Object.fromEntries(formdata)
+        const userData = {
+            username: formdata.get('username'),
+            email: formdata.get('email'),
+            password: formdata.get('password'),
+            password2: formdata.get('password2'),
+            first_name: formdata.get('first_name') || '',
+            last_name: formdata.get('last_name') || ''
+        };
 
-        try {
-            const res = await fetch('http://127.0.0.1:8000/register/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(json),
-            })
+        const result = await register(userData);
 
-            const data = await res.json()
-
-            if (!res.ok) {
-                return data.message || 'Registration failed. Please try again.'
-            }
-
-            // Store username and user_id in localStorage
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('user_id', data.user_id);
-
-            // Redirect to job list on successful registration
+        if (result.success) {
+            // Redirect to login on successful registration
             setTimeout(() => {
-                navigate('/joblist');
-            }, 1000);
-
-            return data.message || 'Registration successful'
-        } catch {
-            return 'Network error. Please check your connection.'
+                navigate('/login');
+            }, 1500);
+            return result.message || 'Registration successful! Please login.';
+        } else {
+            // Handle errors
+            if (result.errors) {
+                const errorMessages = Object.entries(result.errors)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ');
+                return errorMessages || 'Registration failed. Please try again.';
+            }
+            return result.message || 'Registration failed. Please try again.';
         }
     }
 
@@ -138,7 +137,25 @@ export default function RegisterPage() {
                                     type="password"
                                     name="password"
                                     autoComplete="new-password"
-                                    placeholder="Minimum 6 characters"
+                                    placeholder="Minimum 8 characters"
+                                    className="w-full rounded border border-gray-300 px-4 lg:px-5 py-2.5 lg:py-3 text-sm lg:text-base focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                                />
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div>
+                                <label
+                                    htmlFor="password2"
+                                    className="block text-sm lg:text-base font-medium text-gray-700 mb-2"
+                                >
+                                    Confirm Password
+                                </label>
+                                <input
+                                    id="password2"
+                                    type="password"
+                                    name="password2"
+                                    autoComplete="new-password"
+                                    placeholder="Re-enter your password"
                                     className="w-full rounded border border-gray-300 px-4 lg:px-5 py-2.5 lg:py-3 text-sm lg:text-base focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition"
                                 />
                             </div>
