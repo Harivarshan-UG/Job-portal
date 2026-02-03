@@ -58,17 +58,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = config(
+CORS_ALLOWED_ORIGINS = [origin.rstrip('/') for origin in config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:5173,http://127.0.0.1:5173',
     cast=Csv()
-)
+)]
 
-CSRF_TRUSTED_ORIGINS = config(
+CSRF_TRUSTED_ORIGINS = [origin.rstrip('/') for origin in config(
     'CSRF_TRUSTED_ORIGINS',
     default='http://localhost:5173,http://127.0.0.1:5173',
     cast=Csv()
-)
+)]
 
 # Allow cookies to be sent with CORS requests
 CORS_ALLOW_CREDENTIALS = True
@@ -171,6 +171,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Use WhiteNoise for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
