@@ -183,7 +183,7 @@ source venv/bin/activate
 
 ```bash
 cd Backend
-pip install django djangorestframework django-cors-headers psycopg2-binary djangorestframework-simplejwt
+pip install django djangorestframework django-cors-headers psycopg2-binary djangorestframework-simplejwt python-decouple
 ```
 
 **Packages installed:**
@@ -192,6 +192,7 @@ pip install django djangorestframework django-cors-headers psycopg2-binary djang
 - `django-cors-headers` - CORS support
 - `psycopg2-binary` - PostgreSQL adapter
 - `djangorestframework-simplejwt` - JWT authentication
+- `python-decouple` - Environment variable management
 
 #### Create PostgreSQL Database
 
@@ -224,35 +225,45 @@ npm install
 
 ## ⚙️ Configuration
 
+### 🔒 Security Configuration (IMPORTANT!)
+
+**⚠️ Before deploying to production, you MUST configure environment variables for sensitive credentials!**
+
+See **[SECURITY.md](SECURITY.md)** for detailed instructions on:
+- Setting up environment variables (`.env` file)
+- Securing database passwords and secret keys
+- Production deployment checklist
+- What to do if credentials are exposed
+
+**Quick Setup:**
+```bash
+cd Backend
+cp .env.example .env
+# Edit .env with your actual credentials
+```
+
 ### Backend Configuration
 
-Edit `Backend/Backend/settings.py`:
+The application now uses environment variables for sensitive data. Edit `Backend/.env`:
 
-```python
-# Database Configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'jobportal_db',
-        'USER': 'postgres',
-        'PASSWORD': 'your_password',  # Change this
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+```env
+# Django Settings
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+
+# Database Settings
+DB_NAME=jobportal_db
+DB_USER=postgres
+DB_PASSWORD=your-database-password
+DB_HOST=localhost
+DB_PORT=5432
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
-# CSRF Settings
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
+
+**⚠️ NEVER commit the `.env` file to Git!** It's already in `.gitignore`.
 
 ### Frontend Configuration
 
@@ -794,4 +805,3 @@ fetch('http://127.0.0.1:8000/api/endpoint/', {
 5. **Logout**: Tokens removed from localStorage
 
 -----*-----
-
